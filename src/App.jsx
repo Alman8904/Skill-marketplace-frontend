@@ -14,9 +14,32 @@ const getAuth = () => {
 const RedirectHandler = () => {
   const { role, isAuthenticated } = getAuth();
   if (isAuthenticated) {
-    return <Navigate to={role === 'PROVIDER' ? '/provider' : '/consumer'} replace />;
+    if (role === 'PROVIDER') {
+      return <Navigate to="/provider" replace />;
+    } else if (role === 'ADMIN') {
+      return <Navigate to="/admin" replace />;
+    } else {
+      return <Navigate to="/consumer" replace />;
+    }
   }
   return <Navigate to="/login" replace />;
+};
+
+// Temporary Admin Dashboard - can be replaced with actual admin panel
+const AdminDashboard = () => {
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = '/login';
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Admin Dashboard</h1>
+      <p>Welcome to the admin panel</p>
+      <button onClick={handleLogout}>Logout</button>
+    </div>
+  );
 };
 
 function App() {
@@ -28,7 +51,13 @@ function App() {
           (() => {
             const { role, isAuthenticated } = getAuth();
             if (isAuthenticated) {
-              return <Navigate to={role === 'PROVIDER' ? '/provider' : '/consumer'} replace />;
+              if (role === 'PROVIDER') {
+                return <Navigate to="/provider" replace />;
+              } else if (role === 'ADMIN') {
+                return <Navigate to="/admin" replace />;
+              } else {
+                return <Navigate to="/consumer" replace />;
+              }
             }
             return <Login />;
           })()
@@ -40,7 +69,13 @@ function App() {
           (() => {
             const { role, isAuthenticated } = getAuth();
             if (isAuthenticated) {
-              return <Navigate to={role === 'PROVIDER' ? '/provider' : '/consumer'} replace />;
+              if (role === 'PROVIDER') {
+                return <Navigate to="/provider" replace />;
+              } else if (role === 'ADMIN') {
+                return <Navigate to="/admin" replace />;
+              } else {
+                return <Navigate to="/consumer" replace />;
+              }
             }
             return <Register />;
           })()
@@ -59,6 +94,14 @@ function App() {
         element={
           <ProtectedRoute requiredRole="PROVIDER">
             <ProviderDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole="ADMIN">
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />

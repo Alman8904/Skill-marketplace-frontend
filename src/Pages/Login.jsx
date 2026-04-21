@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { getErrorMessage } from '../utils/errorHandler';
+import { extractRoleFromToken } from '../utils/jwtDecoder';
 import ThemeToggle from '../Components/ThemeToggle';
 
 export default function Login() {
@@ -43,15 +44,29 @@ export default function Login() {
       }
       localStorage.setItem('token', token);
 
-      // Fetch user profile to get userType (role)
-      const profileRes = await api.get('/public/user/profile');
-      const profile = profileRes.data;
-      const role = profile?.userType || 'CONSUMER';
+      // Try to extract role from JWT token first
+      let role = extractRoleFromToken(token);
+      
+      // If role not in token, try to fetch from profile endpoint
+      if (!role) {
+        try {
+          const profileRes = await api.get('/public/user/profile');
+          const profile = profileRes.data;
+          role = profile?.userType || profile?.role || 'CONSUMER';
+        } catch (err) {
+          // If profile fetch fails, default to CONSUMER
+          console.warn('Could not fetch user profile, defaulting to CONSUMER');
+          role = 'CONSUMER';
+        }
+      }
+
       localStorage.setItem('role', role);
 
       // Redirect based on role
       if (role === 'PROVIDER') {
         navigate('/provider');
+      } else if (role === 'ADMIN') {
+        navigate('/admin');
       } else {
         navigate('/consumer');
       }
